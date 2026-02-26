@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2 class="mb-4 fw-bold">AI Business Analytics Dashboard</h2>
+
+<div class="card shadow-sm p-4 mb-4">
+    <form method="POST">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <input name="month" type="number" class="form-control" placeholder="Tháng(1-12)" required>
+            </div>
+            <div class="col-md-3">
+                <input name="cost" type="number" class="form-control" placeholder="Vốn bỏ ra" required>
+            </div>
+            <div class="col-md-3">
+                <input name="customers" type="number" class="form-control" placeholder="Lượng khách hàng" required>
+            </div>
+            <div class="col-md-3">
+                <input name="revenue" type="number" class="form-control" placeholder="doanh thu" required>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-dark w-100">+</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm p-4 mb-4">
+    <canvas id="chart"></canvas>
+</div>
+
+{% if prediction %}
+<div class="card shadow-sm p-4">
+    <h5>Model Performance</h5>
+    <p>R² Score: <strong>{{ accuracy }}</strong></p>
+    <p>
+        Predicted revenue for month {{ next_month }}:
+        <strong>{{ prediction }}</strong>
+    </p>
+</div>
+{% endif %}
+
+<script>
+const months = {{ data|map(attribute=0)|list|tojson }};
+const revenues = {{ data|map(attribute=3)|list|tojson }};
+const prediction = {{ prediction if prediction else "null" }};
+const nextMonth = {{ next_month if next_month else "null" }};
+
+let chartLabels = [...months];
+let chartData = [...revenues];
+
+if (prediction) {
+    chartLabels.push(nextMonth);
+    chartData.push(prediction);
+}
+
+new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+        labels: chartLabels,
+        datasets: [{
+            label: 'Doanh thu (Thực tế + Dự đoán)',
+            data: chartData,
+            tension: 0.3
+        }]
+    }
+});
+</script>
+
+{% endblock %}
